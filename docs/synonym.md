@@ -30,15 +30,16 @@ You can partially make use of the Sudachi synonym resource's detailed informatio
 
 ### Punctuation Symbols
 
-You may need to remove certain synonym words such as `€` and `＆` when you use the analyzer with setting `"discard_punctuation": true` (Otherwise you will be get an error, e.g., `"term: € was completely eliminated by analyzer"`). Alternatively, you can set `"lenient": true` for the synonym filter to ignore the exceptions.
+You may need to remove certain synonym words such as `€` and `＆` when you use the analyzer with setting `"discard_punctuation": true` (Otherwise you will be get an error, e.g., `"term: € was completely eliminated by analyzer"`). If you are using [ssyn2es.py](./ssyn2es.py), use `--discard-punctuation` option to skip those words. Alternatively, you can set `"lenient": true` for the synonym filter to ignore the exceptions.
 
-These symbols are defined as punctuations; See [SudachiTokenizer.java](https://github.com/WorksApplications/elasticsearch-sudachi/blob/develop/src/main/java/com/worksap/nlp/lucene/sudachi/ja/SudachiTokenizer.java#L140) for the detail.
+These symbols are defined as punctuations; See [Strings.java](https://github.com/WorksApplications/elasticsearch-sudachi/blob/develop/src/main/java/com/worksap/nlp/lucene/sudachi/ja/util/Strings.java) for the detail.
 
 
 ## Synonym Filter
 
 You can use the converted Solr format file with Elasticsearch's default synonym filters, [Synonym token filter](https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-synonym-tokenfilter.html) or [Synonym graph filter](https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-synonym-graph-tokenfilter.html).
 
+As `sudachi_split` filter produces token graph, you *cannot* use it with synonym filter.
 
 ### Example: Set up
 
@@ -72,8 +73,6 @@ You can use the converted Solr format file with Elasticsearch's default synonym 
 ```
 
 Here we assume that the converted synonym file is placed as `$ES_PATH_CONF/sudachi/synonym.txt`.
-
-If you would like to use `sudachi_split` filter, set it *after* the synonym filter (otherwise you will get an error, e.g., `term: 不明確 analyzed to a token (不) with position increment != 1 (got: 0)`).
 
 
 ### Example: Analysis
