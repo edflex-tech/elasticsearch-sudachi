@@ -30,7 +30,7 @@ def load_synonyms(files, output_predicate, discard_punctuation):
                 continue
 
             entry = line.split(",")[0:9]
-            headword = unescape(entry[8])
+            headword = escape_comma(unescape_unicode_literal(entry[8]))
 
             is_deleted = (entry[2] == "2")
             is_predicate = (entry[1] == "2")
@@ -55,8 +55,12 @@ def _repl_uncode_literal(m):
     return chr(int(m.group(1).strip("{}"), 16))
 
 
-def unescape(word):
+def unescape_unicode_literal(word):
     return unicode_literal_pattern.sub(_repl_uncode_literal, word)
+
+
+def escape_comma(word):
+    return word.replace(",", "\,")
 
 
 # Unicode General Category list, that is used for punctuation in elasticsearch_sudachi
