@@ -2,6 +2,7 @@
 
 import argparse
 import fileinput
+import re
 import sys
 import unicodedata
 
@@ -27,21 +28,35 @@ def load_synonyms(files, output_predicate, discard_punctuation):
             line = line.strip()
             if line == "":
                 continue
+
             entry = line.split(",")[0:9]
+            headword = unescape(entry[8])
 
             is_deleted = (entry[2] == "2")
             is_predicate = (entry[1] == "2")
             if is_deleted or (is_predicate and not output_predicate):
                 continue
-            if (is_punctuation_word(entry[8]) and discard_punctuation):
+            if (is_punctuation_word(headword) and discard_punctuation):
                 print(f"skip punctuation entry {entry[8]} at line {i}",
                       file=sys.stderr)
                 continue
 
             group = synonyms.setdefault(entry[0], [[], []])
-            group[1 if entry[2] == "1" else 0].append(entry[8])
+            group[1 if entry[2] == "1" else 0].append(headword)
 
     return synonyms
+
+
+unicode_literal_pattern = re.compile(
+    r"""\\u([0-9a-fA-F]{4}|\{[0-9a-fA-F]+\})""")
+
+
+def _repl_uncode_literal(m):
+    return chr(int(m.group(1).strip("{}"), 16))
+
+
+def unescape(word):
+    return unicode_literal_pattern.sub(_repl_uncode_literal, word)
 
 
 # Unicode General Category list, that is used for punctuation in elasticsearch_sudachi
