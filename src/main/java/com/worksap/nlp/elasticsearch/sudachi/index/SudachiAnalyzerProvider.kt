@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2024 Works Applications Co., Ltd.
+ * Copyright (c) 2017-2025 Works Applications Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,33 +29,29 @@ class SudachiAnalyzerProvider(
     analysisCache: AnalysisCacheService,
     dictionaryService: DictionaryService,
     indexSettings: IndexSettings,
-    env: Environment?,
-    name: String?,
-    settings: Settings?
+    env: Environment,
+    name: String,
+    settings: Settings
 ) : AbstractIndexAnalyzerProvider<SudachiAnalyzer>(indexSettings, env, name, settings) {
-  private val analyzer: SudachiAnalyzer
 
-  init {
-    val stopWords: Set<*> =
-        parseStopWords(env, settings, SudachiAnalyzer.getDefaultStopSet(), false)
-    val configs = ConfigAdapter(dictionaryService.anchor, settings!!, env!!)
-    val dictionary = dictionaryService.forConfig(configs.compiled)
-    val cache =
-        analysisCache.analysisCache(
-            indexSettings.index.name, configs.compiled, configs.mode, settings)
-    analyzer =
-        SudachiAnalyzer(
-            dictionary,
-            cache,
-            configs.discardPunctuation,
-            configs.mode,
-            CharArraySet.copy(stopWords),
-            SudachiAnalyzer.getDefaultStopTags(),
-        )
+  private val stopWords: Set<*> by lazy {
+    parseStopWords(env, settings, SudachiAnalyzer.getDefaultStopSet(), false)
+  }
+  private val configs by lazy { ConfigAdapter(dictionaryService.anchor, settings, env) }
+  private val dictionary by lazy { dictionaryService.forConfig(configs.compiled) }
+  private val cache by lazy {
+    analysisCache.analysisCache(indexSettings.index.name, configs.compiled, configs.mode, settings)
   }
 
   override fun get(): SudachiAnalyzer {
-    return analyzer
+    return SudachiAnalyzer(
+        dictionary,
+        cache,
+        configs.discardPunctuation,
+        configs.mode,
+        CharArraySet.copy(stopWords),
+        SudachiAnalyzer.getDefaultStopTags(),
+    )
   }
 
   companion object {
